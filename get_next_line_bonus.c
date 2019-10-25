@@ -6,11 +6,12 @@
 /*   By: adda-sil <adda-sil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/24 23:22:02 by adda-sil          #+#    #+#             */
-/*   Updated: 2019/10/25 00:04:39 by adda-sil         ###   ########.fr       */
+/*   Updated: 2019/10/25 18:46:44 by adda-sil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line_bonus.h"
+#include <stdio.h>
 
 char	*ft_strjoin(char *s1, char *s2, int f)
 {
@@ -24,12 +25,13 @@ char	*ft_strjoin(char *s1, char *s2, int f)
 		l1++;
 	while (s2 && s2[l2])
 		l2++;
-	if (!(str = malloc(sizeof(char) * (l1 + l2 + 1))))
+	if (!(str = (char *)malloc(sizeof(char) * (l1 + l2 + 1))))
 		return (NULL);
 	while (s1 && *s1)
 		*str++ = *s1++;
 	if (f && (s1 - l1))
 		free(s1 - l1);
+		// ;
 	while (s2 && *s2)
 		*str++ = *s2++;
 	*str = 0;
@@ -52,7 +54,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 		slen = delta;
 	else
 		slen = 0;
-	if (!(str = (char *)malloc(sizeof(char) * slen + 1)))
+	if (!(str = (char *)malloc(sizeof(char) * (slen + 1))))
 		return (NULL);
 	str[slen] = 0;
 	while (--slen >= 0)
@@ -97,7 +99,7 @@ t_fds	*get_fd(int fd, t_fds **fnode, int to_delete)
 	while ((node && !(node->fd == fd)))
 		if (!node->next || ((node = node->next) && 0))
 		{
-			if (!(node->next = malloc(sizeof(t_fds))))
+			if (!(node->next = (t_fds *)malloc(sizeof(t_fds))))
 				return (NULL);
 			prev = node;
 			node = node->next;
@@ -127,7 +129,7 @@ int		get_next_line(int fd, char **line)
 		return (-1);
 	if (!fnode)
 	{
-		if (!(fnode = malloc(sizeof(t_fds))))
+		if (!(fnode = (t_fds *)malloc(sizeof(t_fds))))
 			return (-1);
 		*fnode = (t_fds){ .fd = fd, .eof = 0, .next = NULL, .prev = NULL };
 		if (!(fnode->data = ft_strjoin("", "", 0)))
@@ -140,7 +142,9 @@ int		get_next_line(int fd, char **line)
 		return ((get_fd(fd, &fnode, 1) || 1) * -1);
 	if (s->eof && !get_fd(fd, &fnode, 1))
 		return (0);
-	tmp = ft_strjoin(s->data + (idx + 1), "", 0);
+	if (!(tmp = ft_strjoin(s->data + (idx + 1), "", 0)))
+		return ((get_fd(fd, &fnode, 1) || 1) * -1);
 	free(s->data);
+	s->data = NULL;
 	return ((s->data = tmp) && 1);
 }
