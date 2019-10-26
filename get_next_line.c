@@ -6,7 +6,7 @@
 /*   By: adda-sil <adda-sil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/24 23:22:02 by adda-sil          #+#    #+#             */
-/*   Updated: 2019/10/26 16:38:31 by adda-sil         ###   ########.fr       */
+/*   Updated: 2019/10/26 16:58:43 by adda-sil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ int		get_next_line(int fd, char **line)
 	t_fds			*s;
 	int				idx;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (!line || fd < 0 || BUFFER_SIZE <= 0)
 		return (-1);
 	if (!fnode)
 	{
@@ -138,7 +138,7 @@ int		get_next_line(int fd, char **line)
 			return (-1);
 		}
 	}
-	if ((!(s = get_fd(fd, &fnode, 0)) || !line))
+	if (!(s = get_fd(fd, &fnode, 0)))
 		return ((get_fd(fd, &fnode, 1) || 1) * -1);
 	idx = read_line(s);
 	if (idx == -1 || !(*line = ft_substr(s->data, 0, idx)) || s->eof)
