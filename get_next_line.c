@@ -6,34 +6,37 @@
 /*   By: adda-sil <adda-sil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/24 23:22:02 by adda-sil          #+#    #+#             */
-/*   Updated: 2019/10/25 00:06:19 by adda-sil         ###   ########.fr       */
+/*   Updated: 2019/10/26 16:38:31 by adda-sil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strjoin(char *s1, char *s2, int f)
+char	*ft_strjoin(char *s1, char *s2, char *to_free)
 {
 	char	*str;
 	int		l1;
 	int		l2;
+	int		i;
 
 	l1 = 0;
 	l2 = 0;
-	while (s1 && s1[l1])
+	while (s1[l1])
 		l1++;
-	while (s2 && s2[l2])
+	while (s2[l2])
 		l2++;
-	if (!(str = malloc(sizeof(char) * (l1 + l2 + 1))))
+	if (!(str = (char *)malloc(sizeof(char) * (l1 + l2 + 1))))
 		return (NULL);
-	while (s1 && *s1)
-		*str++ = *s1++;
-	if (f && (s1 - l1))
-		free(s1 - l1);
-	while (s2 && *s2)
-		*str++ = *s2++;
-	*str = 0;
-	return (str - l1 - l2);
+	i = -1;
+	while (++i < l1)
+		str[i] = s1[i];
+	i = -1;
+	while (++i < l2)
+		str[l1 + i] = s2[i];
+	str[l1 + l2] = 0;
+	if (to_free)
+		free(to_free);
+	return (str);
 }
 
 char	*ft_substr(char const *s, unsigned int start, size_t len)
@@ -52,7 +55,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 		slen = delta;
 	else
 		slen = 0;
-	if (!(str = (char *)malloc(sizeof(char) * slen + 1)))
+	if (!(str = (char *)malloc(sizeof(char) * (slen + 1))))
 		return (NULL);
 	str[slen] = 0;
 	while (--slen >= 0)
@@ -60,7 +63,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 	return (str);
 }
 
-int		read_line(int fd, t_fds *sfd)
+int		read_line(t_fds *sfd)
 {
 	int		ret;
 	int		i;
@@ -72,10 +75,10 @@ int		read_line(int fd, t_fds *sfd)
 		j++;
 	if (sfd->data && (sfd->data[j] == '\n'))
 		return (j);
-	while ((ret = read(fd, buffer, BUFFER_SIZE)) > 0)
+	while ((ret = read(sfd->fd, buffer, BUFFER_SIZE)) > 0)
 	{
 		buffer[ret] = 0;
-		if (!(sfd->data = ft_strjoin(sfd->data, buffer, 1)))
+		if (!(sfd->data = ft_strjoin(sfd->data, buffer, sfd->data)))
 			return (-1);
 		i = -1;
 		while (++i < ret)
@@ -97,7 +100,7 @@ t_fds	*get_fd(int fd, t_fds **fnode, int to_delete)
 	while ((node && !(node->fd == fd)))
 		if (!node->next || ((node = node->next) && 0))
 		{
-			if (!(node->next = malloc(sizeof(t_fds))))
+			if (!(node->next = (t_fds *)malloc(sizeof(t_fds))))
 				return (NULL);
 			prev = node;
 			node = node->next;
@@ -121,26 +124,26 @@ int		get_next_line(int fd, char **line)
 	static t_fds	*fnode = 0;
 	t_fds			*s;
 	int				idx;
-	char			*tmp;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (-1);
 	if (!fnode)
 	{
-		if (!(fnode = malloc(sizeof(t_fds))))
+		if (!(fnode = (t_fds *)malloc(sizeof(t_fds))))
 			return (-1);
 		*fnode = (t_fds){ .fd = fd, .eof = 0, .next = NULL, .prev = NULL };
 		if (!(fnode->data = ft_strjoin("", "", 0)))
+		{
+			free(fnode);
 			return (-1);
+		}
 	}
 	if ((!(s = get_fd(fd, &fnode, 0)) || !line))
 		return ((get_fd(fd, &fnode, 1) || 1) * -1);
-	idx = read_line(fd, s);
-	if (idx == -1 || !(*line = ft_substr(s->data, 0, idx)))
+	idx = read_line(s);
+	if (idx == -1 || !(*line = ft_substr(s->data, 0, idx)) || s->eof)
+		return ((get_fd(fd, &fnode, 1) || 1) * (!*line || idx == -1 ? -1 : 0));
+	if (!(s->data = ft_strjoin(s->data + idx + 1, "", s->data)))
 		return ((get_fd(fd, &fnode, 1) || 1) * -1);
-	if (s->eof)
-		return ((get_fd(fd, &fnode, 1) && 0));
-	tmp = ft_strjoin(s->data + (idx + 1), "", 0);
-	free(s->data);
-	return ((s->data = tmp) || 1);
+	return (1);
 }
