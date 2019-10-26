@@ -6,7 +6,7 @@
 /*   By: adda-sil <adda-sil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/13 17:29:54 by adda-sil          #+#    #+#             */
-/*   Updated: 2019/10/26 16:47:22 by adda-sil         ###   ########.fr       */
+/*   Updated: 2019/10/26 20:12:42 by adda-sil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,5 +29,5 @@ typedef	struct		s_fds
 int					get_next_line(int fd, char **line);
 #endif
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE = 1024
+# define BUFFER_SIZE 1024
 #endif
