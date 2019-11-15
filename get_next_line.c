@@ -6,13 +6,13 @@
 /*   By: adda-sil <adda-sil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/10/24 23:22:02 by adda-sil          #+#    #+#             */
-/*   Updated: 2019/10/26 16:58:43 by adda-sil         ###   ########.fr       */
+/*   Updated: 2019/11/15 07:00:54 by adda-sil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strjoin(char *s1, char *s2, char *to_free)
+char	*gnl_strjoin(char *s1, char *s2, char *to_free)
 {
 	char	*str;
 	int		l1;
@@ -39,7 +39,7 @@ char	*ft_strjoin(char *s1, char *s2, char *to_free)
 	return (str);
 }
 
-char	*ft_substr(char const *s, unsigned int start, size_t len)
+char	*gnl_substr(char const *s, unsigned int start, size_t len)
 {
 	char	*str;
 	int		slen;
@@ -63,7 +63,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 	return (str);
 }
 
-int		read_line(t_fds *sfd)
+int		gnl_readline(t_fds *sfd)
 {
 	int		ret;
 	int		i;
@@ -78,7 +78,7 @@ int		read_line(t_fds *sfd)
 	while ((ret = read(sfd->fd, buffer, BUFFER_SIZE)) > 0)
 	{
 		buffer[ret] = 0;
-		if (!(sfd->data = ft_strjoin(sfd->data, buffer, sfd->data)))
+		if (!(sfd->data = gnl_strjoin(sfd->data, buffer, sfd->data)))
 			return (-1);
 		i = -1;
 		while (++i < ret)
@@ -91,7 +91,7 @@ int		read_line(t_fds *sfd)
 	return (ret == -1 ? -1 : j);
 }
 
-t_fds	*get_fd(int fd, t_fds **fnode, int to_delete)
+t_fds	*gnl_getfd(int fd, t_fds **fnode, int to_delete)
 {
 	t_fds	*node;
 	t_fds	*prev;
@@ -105,7 +105,7 @@ t_fds	*get_fd(int fd, t_fds **fnode, int to_delete)
 			prev = node;
 			node = node->next;
 			*node = (t_fds){ .fd = fd, .eof = 0, .next = NULL, .prev = prev };
-			if (!(node->data = ft_strjoin("", "", 0)))
+			if (!(node->data = gnl_strjoin("", "", 0)))
 				return (NULL);
 		}
 	if (to_delete)
@@ -132,18 +132,18 @@ int		get_next_line(int fd, char **line)
 		if (!(fnode = (t_fds *)malloc(sizeof(t_fds))))
 			return (-1);
 		*fnode = (t_fds){ .fd = fd, .eof = 0, .next = NULL, .prev = NULL };
-		if (!(fnode->data = ft_strjoin("", "", 0)))
+		if (!(fnode->data = gnl_strjoin("", "", 0)))
 		{
 			free(fnode);
 			return (-1);
 		}
 	}
-	if (!(s = get_fd(fd, &fnode, 0)))
-		return ((get_fd(fd, &fnode, 1) || 1) * -1);
-	idx = read_line(s);
-	if (idx == -1 || !(*line = ft_substr(s->data, 0, idx)) || s->eof)
-		return ((get_fd(fd, &fnode, 1) || 1) * (!*line || idx == -1 ? -1 : 0));
-	if (!(s->data = ft_strjoin(s->data + idx + 1, "", s->data)))
-		return ((get_fd(fd, &fnode, 1) || 1) * -1);
+	if (!(s = gnl_getfd(fd, &fnode, 0)))
+		return ((gnl_getfd(fd, &fnode, 1) || 1) * -1);
+	idx = gnl_readline(s);
+	if (idx == -1 || !(*line = gnl_substr(s->data, 0, idx)) || s->eof)
+		return ((gnl_getfd(fd, &fnode, 1) || 1) * (!*line || idx == -1 ? -1 : 0));
+	if (!(s->data = gnl_strjoin(s->data + idx + 1, "", s->data)))
+		return ((gnl_getfd(fd, &fnode, 1) || 1) * -1);
 	return (1);
 }
